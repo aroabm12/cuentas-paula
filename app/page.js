@@ -1045,7 +1045,7 @@ export default function Home() {
           </div>
           <div className="full">
             <label>Concepto</label>
-            <input type="text" placeholder="p.ej. cena, gasolina, paro..." value={concepto} onChange={(e) => cambiarConcepto(e.target.value)} />
+            <input type="text" placeholder="p.ej. cena, gasolina, nómina..." value={concepto} onChange={(e) => cambiarConcepto(e.target.value)} />
           </div>
           {tipo === "gasto" && (
             <div className="full">
@@ -1170,7 +1170,7 @@ export default function Home() {
 
       <div className="card no-imprimir">
         <button type="button" className="link-btn" onClick={() => setMostrarGestionIng((v) => !v)}>
-          {mostrarGestionIng ? "Ocultar gestión de ingresos fijos" : "Gestionar mis ingresos fijos (el Paro, etc.)"}
+          {mostrarGestionIng ? "Ocultar gestión de ingresos fijos" : "Gestionar mis ingresos fijos (la nómina, etc.)"}
         </button>
         {mostrarGestionIng && (
           <div style={{ marginTop: 12 }}>
