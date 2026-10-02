@@ -107,7 +107,7 @@ export default function Home() {
   }, [anioMesHoy]);
   const [movimientos, setMovimientos] = useState([]);
   const [saldoInicial, setSaldoInicial] = useState(0);
-  const [config, setConfig] = useState({ meta_min: 450, meta_max: 500 });
+  const [config, setConfig] = useState({ meta_min: 250, meta_max: 250 });
   const [gastosFijos, setGastosFijos] = useState([]);
   const [ingresosFijos, setIngresosFijos] = useState([]);
   const [presupuestoVariable, setPresupuestoVariable] = useState([]);
@@ -198,8 +198,8 @@ export default function Home() {
   const ingresosMes = movDelMes.reduce((s, m) => s + Number(m.ingreso), 0);
   const gastosMes = movDelMes.reduce((s, m) => s + Number(m.gasto), 0);
   const ahorroRealMes = ingresosMes - gastosMes;
-  const metaMin = Number(config.meta_min ?? 450);
-  const metaMax = Number(config.meta_max ?? 500);
+  const metaMin = Number(config.meta_min ?? 250);
+  const metaMax = Number(config.meta_max ?? 250);
 
   // Previsión del mes, como en el Excel: lo que cobras normalmente menos
   // tus gastos fijos habituales menos lo que quieres ahorrar = lo que
