@@ -153,7 +153,10 @@ export default function Home() {
         fetch("/api/overrides-mensuales"),
       ]);
       for (const r of [rMov, rCfg, rGF, rIF, rVar, rOv]) {
-        if (!r.ok) throw new Error(`Error ${r.status} cargando datos`);
+        if (!r.ok) {
+          const data = await r.json().catch(() => ({}));
+          throw new Error(data.error || `Error ${r.status} cargando datos`);
+        }
       }
       const dMov = await rMov.json();
       const dCfg = await rCfg.json();
