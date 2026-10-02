@@ -154,8 +154,12 @@ export default function Home() {
       ]);
       for (const r of [rMov, rCfg, rGF, rIF, rVar, rOv]) {
         if (!r.ok) {
-          const data = await r.json().catch(() => ({}));
-          throw new Error(data.error || `Error ${r.status} cargando datos`);
+          const texto = await r.text().catch(() => "");
+          let motivo = texto.slice(0, 200);
+          try {
+            motivo = JSON.parse(texto).error || motivo;
+          } catch {}
+          throw new Error(`${r.url.split("/api/")[1] || ""} (${r.status}): ${motivo || "sin detalle"}`);
         }
       }
       const dMov = await rMov.json();
