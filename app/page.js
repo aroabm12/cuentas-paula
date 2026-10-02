@@ -118,7 +118,6 @@ export default function Home() {
   const [nuevoSaldoInicial, setNuevoSaldoInicial] = useState("");
   const [editandoMeta, setEditandoMeta] = useState(false);
   const [metaMinInput, setMetaMinInput] = useState("");
-  const [metaMaxInput, setMetaMaxInput] = useState("");
 
   const [fecha, setFecha] = useState(() => new Date().toISOString().slice(0, 10));
   const [concepto, setConcepto] = useState("");
@@ -145,12 +144,12 @@ export default function Home() {
     setError("");
     try {
       const [rMov, rCfg, rGF, rIF, rVar, rOv] = await Promise.all([
-        fetch("/api/movimientos"),
-        fetch("/api/config"),
-        fetch("/api/gastos-fijos"),
-        fetch("/api/ingresos-fijos"),
-        fetch("/api/presupuesto-variable"),
-        fetch("/api/overrides-mensuales"),
+        fetch("/api/movimientos", { cache: "no-store" }),
+        fetch("/api/config", { cache: "no-store" }),
+        fetch("/api/gastos-fijos", { cache: "no-store" }),
+        fetch("/api/ingresos-fijos", { cache: "no-store" }),
+        fetch("/api/presupuesto-variable", { cache: "no-store" }),
+        fetch("/api/overrides-mensuales", { cache: "no-store" }),
       ]);
       for (const r of [rMov, rCfg, rGF, rIF, rVar, rOv]) {
         if (!r.ok) {
@@ -199,7 +198,6 @@ export default function Home() {
   const gastosMes = movDelMes.reduce((s, m) => s + Number(m.gasto), 0);
   const ahorroRealMes = ingresosMes - gastosMes;
   const metaMin = Number(config.meta_min ?? 250);
-  const metaMax = Number(config.meta_max ?? 250);
 
   // Previsión del mes, como en el Excel: lo que cobras normalmente menos
   // tus gastos fijos habituales menos lo que quieres ahorrar = lo que
@@ -409,17 +407,30 @@ export default function Home() {
     cargarTodo();
   }
 
+  // La meta de ahorro es una cantidad fija al mes.
   async function guardarMeta() {
-    await fetch("/api/config", {
-      method: "PUT",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        meta_min: Number(metaMinInput),
-        meta_max: Number(metaMaxInput),
-      }),
-    });
-    setEditandoMeta(false);
-    cargarTodo();
+    const meta = Number(String(metaMinInput).replace(",", "."));
+    if (!Number.isFinite(meta) || meta < 0) {
+      setError("Escribe una cantidad válida para la meta de ahorro.");
+      return;
+    }
+    setError("");
+    try {
+      const res = await fetch("/api/config", {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ meta_min: meta, meta_max: meta }),
+      });
+      if (!res.ok) {
+        const data = await res.json().catch(() => ({}));
+        throw new Error(data.error || `Error ${res.status}`);
+      }
+      setConfig((c) => ({ ...c, meta_min: meta, meta_max: meta }));
+      setEditandoMeta(false);
+      cargarTodo();
+    } catch (err) {
+      setError("No se ha podido guardar la meta de ahorro: " + err.message);
+    }
   }
 
   async function guardarIngresosPrevistosMes() {
@@ -836,7 +847,6 @@ export default function Home() {
                 style={{ marginLeft: 6 }}
                 onClick={() => {
                   setMetaMinInput(String(metaMin));
-                  setMetaMaxInput(String(metaMax));
                   setEditandoMeta(true);
                 }}
               >
@@ -848,10 +858,18 @@ export default function Home() {
         </div>
         {editandoMeta && (
           <div className="editar-saldo" style={{ marginBottom: 10 }}>
-            <input type="number" step="1" value={metaMinInput} onChange={(e) => setMetaMinInput(e.target.value)} />
-            <span>—</span>
-            <input type="number" step="1" value={metaMaxInput} onChange={(e) => setMetaMaxInput(e.target.value)} />
+            <input
+              type="number"
+              step="0.01"
+              inputMode="decimal"
+              value={metaMinInput}
+              onChange={(e) => setMetaMinInput(e.target.value)}
+            />
+            <span>€ al mes</span>
             <button type="button" onClick={guardarMeta}>Guardar</button>
+            <button type="button" className="link-btn" onClick={() => setEditandoMeta(false)}>
+              Cancelar
+            </button>
           </div>
         )}
         <div className="presupuesto-linea total">
